@@ -24,43 +24,25 @@ type Config = {
 };
 
 export function register(config?: Config) {
-  console.log(`process.env.NODE_ENV: ${process.env.NODE_ENV}`);
-  console.log(`navigator.serviceWorker: ${navigator.serviceWorker}`);
-  if (process.env.NODE_ENV === 'production' && 'serviceWorker' in navigator) {
-    // The URL constructor is available in all browsers that support SW.
+  try {
+    if (!(process.env.NODE_ENV === 'production')) throw new Error('yarn startのため、SWの登録は行いません');
+    if (!('serviceWorker' in navigator)) throw new Error('ブラウザがSWに対応していないため、SWの登録は行いません');
+
     const publicUrl = new URL(process.env.PUBLIC_URL, window.location.href);
+    if (publicUrl.origin !== window.location.origin) throw new Error('同一オリジンではないため、SWの登録は行いません');
 
-    console.log(`publicUrl.origin: ${publicUrl.origin}`);
-    console.log(`window.location.origin: ${window.location.origin}`);
-    if (publicUrl.origin !== window.location.origin) {
-      // Our service worker won't work if PUBLIC_URL is on a different origin
-      // from what our page is served on. This might happen if a CDN is used to
-      // serve assets; see https://github.com/facebook/create-react-app/issues/2374
-      return;
-    }
-
-    console.log(`window.location.hostname: ${window.location.hostname}`);
-    console.log(`isLocalhost: ${isLocalhost}`);
-    window.addEventListener('load', () => {
+    window.addEventListener('load', async() => {
       const swUrl = `${process.env.PUBLIC_URL}/service-worker.js`;
-      console.log(`swUrl: ${swUrl}`);
-      if (isLocalhost) {
-        // This is running on localhost. Let's check if a service worker still exists or not.
-        checkValidServiceWorker(swUrl, config);
+      if (!isLocalhost) return registerValidSW(swUrl, config);
 
-        // Add some additional logging to localhost, pointing developers to the
-        // service worker/PWA documentation.
-        navigator.serviceWorker.ready.then(() => {
-          console.log(
-            'This web app is being served cache-first by a service ' +
-              'worker. To learn more, visit https://cra.link/PWA'
-          );
-        });
-      } else {
-        // Is not localhost. Just register service worker
-        registerValidSW(swUrl, config);
-      }
+      checkValidServiceWorker(swUrl, config);
+
+      await navigator.serviceWorker.ready;
+      console.log('このWeb Appは、サービスワーカーによってcache-firstで提供されています。');
     });
+  } catch (error) {
+    if (error instanceof Error) return console.log(error.message);
+    console.log(error);
   }
 }
 
@@ -80,8 +62,7 @@ function registerValidSW(swUrl: string, config?: Config) {
               // but the previous service worker will still serve the older
               // content until all client tabs are closed.
               console.log(
-                'New content is available and will be used when all ' +
-                  'tabs for this page are closed. See https://cra.link/PWA.'
+                'New content is available and will be used when all tabs for this page are closed. See https://cra.link/PWA.'
               );
 
               // Execute callback
