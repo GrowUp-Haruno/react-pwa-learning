@@ -113,7 +113,8 @@ dist
 /coverage
 
 # production
-/build
+# github pagesに登録するため無効化
+# /build
 
 # misc
 .DS_Store
