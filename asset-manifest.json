@@ -1,13 +1,13 @@
 {
   "files": {
-    "main.js": "/static/js/main.e68ee090.js",
-    "static/js/787.7259a97f.chunk.js": "/static/js/787.7259a97f.chunk.js",
-    "service-worker.js": "/service-worker.js",
-    "index.html": "/index.html",
-    "main.e68ee090.js.map": "/static/js/main.e68ee090.js.map",
-    "787.7259a97f.chunk.js.map": "/static/js/787.7259a97f.chunk.js.map"
+    "main.js": "/react-pwa-learning/static/js/main.9d2ba777.js",
+    "static/js/787.7259a97f.chunk.js": "/react-pwa-learning/static/js/787.7259a97f.chunk.js",
+    "service-worker.js": "/react-pwa-learning/service-worker.js",
+    "index.html": "/react-pwa-learning/index.html",
+    "main.9d2ba777.js.map": "/react-pwa-learning/static/js/main.9d2ba777.js.map",
+    "787.7259a97f.chunk.js.map": "/react-pwa-learning/static/js/787.7259a97f.chunk.js.map"
   },
   "entrypoints": [
-    "static/js/main.e68ee090.js"
+    "static/js/main.9d2ba777.js"
   ]
 }
