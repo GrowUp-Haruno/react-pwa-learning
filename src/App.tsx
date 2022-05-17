@@ -1,7 +1,7 @@
 function App() {
   return (
     <div style={{ display: 'flex', justifyContent: 'center' }}>
-      <p>ver.1</p>
+      <p>ver.13</p>
     </div>
   );
 }

@@ -56,6 +56,6 @@
   },
   "devDependencies": {
     "gh-pages": "^4.0.0"
-  },
-  "homepage": "https://growup-haruno.github.io/react-pwa-learning/"
+  }
+
 }

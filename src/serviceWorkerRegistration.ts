@@ -1,15 +1,3 @@
-// This optional code is used to register a service worker.
-// register() is not called by default.
-
-// This lets the app load faster on subsequent visits in production, and gives
-// it offline capabilities. However, it also means that developers (and users)
-// will only see deployed updates on subsequent visits to a page, after all the
-// existing tabs open on the page have been closed, since previously cached
-// resources are updated in the background.
-
-// To learn more about the benefits of this model and instructions on how to
-// opt-in, read https://cra.link/PWA
-
 const isLocalhost = Boolean(
   window.location.hostname === 'localhost' ||
     // [::1] is the IPv6 localhost address.
@@ -18,97 +6,58 @@ const isLocalhost = Boolean(
     window.location.hostname.match(/^127(?:\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}$/)
 );
 
-type Config = {
+export type ServiceWorkerConfig = {
   onSuccess?: (registration: ServiceWorkerRegistration) => void;
   onUpdate?: (registration: ServiceWorkerRegistration) => void;
 };
 
-export function register(config?: Config) {
-  console.log(`process.env.NODE_ENV: ${process.env.NODE_ENV}`);
-  console.log(`navigator.serviceWorker: ${navigator.serviceWorker}`);
-  if (process.env.NODE_ENV === 'production' && 'serviceWorker' in navigator) {
-    // The URL constructor is available in all browsers that support SW.
+export function register(config?: ServiceWorkerConfig) {
+  try {
+    if (!(process.env.NODE_ENV === 'production')) throw new Error('yarn startのため、SWの登録は行いません');
+
+    if (!('serviceWorker' in navigator)) throw new Error('ブラウザがSWに対応していないため、SWの登録は行いません');
+
     const publicUrl = new URL(process.env.PUBLIC_URL, window.location.href);
+    if (publicUrl.origin !== window.location.origin) throw new Error('同一オリジンではないため、SWの登録は行いません');
 
-    console.log(`publicUrl.origin: ${publicUrl.origin}`);
-    console.log(`window.location.origin: ${window.location.origin}`);
-    if (publicUrl.origin !== window.location.origin) {
-      // Our service worker won't work if PUBLIC_URL is on a different origin
-      // from what our page is served on. This might happen if a CDN is used to
-      // serve assets; see https://github.com/facebook/create-react-app/issues/2374
-      return;
-    }
-
-    console.log(`window.location.hostname: ${window.location.hostname}`);
-    console.log(`isLocalhost: ${isLocalhost}`);
-    window.addEventListener('load', () => {
+    window.addEventListener('load', async () => {
       const swUrl = `${process.env.PUBLIC_URL}/service-worker.js`;
-      console.log(`swUrl: ${swUrl}`);
-      if (isLocalhost) {
-        // This is running on localhost. Let's check if a service worker still exists or not.
-        checkValidServiceWorker(swUrl, config);
+      if (!isLocalhost) return await registerValidSW(swUrl, config);
 
-        // Add some additional logging to localhost, pointing developers to the
-        // service worker/PWA documentation.
-        navigator.serviceWorker.ready.then(() => {
-          console.log(
-            'This web app is being served cache-first by a service ' +
-              'worker. To learn more, visit https://cra.link/PWA'
-          );
-        });
-      } else {
-        // Is not localhost. Just register service worker
-        registerValidSW(swUrl, config);
-      }
+      checkValidServiceWorker(swUrl, config);
+
+      await navigator.serviceWorker.ready;
+      console.log('このWeb Appは、サービスワーカーによってcache-firstで提供されています。');
     });
+  } catch (error) {
+    if (error instanceof Error) return console.log(error.message);
+    console.log(error);
   }
 }
 
-function registerValidSW(swUrl: string, config?: Config) {
-  navigator.serviceWorker
-    .register(swUrl)
-    .then((registration) => {
-      registration.onupdatefound = () => {
-        const installingWorker = registration.installing;
-        if (installingWorker == null) {
-          return;
-        }
-        installingWorker.onstatechange = () => {
-          if (installingWorker.state === 'installed') {
-            if (navigator.serviceWorker.controller) {
-              // At this point, the updated precached content has been fetched,
-              // but the previous service worker will still serve the older
-              // content until all client tabs are closed.
-              console.log(
-                'New content is available and will be used when all ' +
-                  'tabs for this page are closed. See https://cra.link/PWA.'
-              );
+async function registerValidSW(swUrl: string, config?: ServiceWorkerConfig) {
+  try {
+    const registration = await navigator.serviceWorker.register(swUrl);
 
-              // Execute callback
-              if (config && config.onUpdate) {
-                config.onUpdate(registration);
-              }
-            } else {
-              // At this point, everything has been precached.
-              // It's the perfect time to display a
-              // "Content is cached for offline use." message.
-              console.log('Content is cached for offline use.');
+    // 更新検知時の発火イベントを登録
+    registration.onupdatefound = () => {
+      const installingWorker = registration.installing;
+      if (installingWorker == null) return;
 
-              // Execute callback
-              if (config && config.onSuccess) {
-                config.onSuccess(registration);
-              }
-            }
-          }
-        };
+      installingWorker.onstatechange = () => {
+        if (!(installingWorker.state === 'installed')) return;
+
+        if (navigator.serviceWorker.controller && config && config.onUpdate) config.onUpdate(registration);
+        if (!navigator.serviceWorker.controller && config && config.onSuccess) config.onSuccess(registration);
+        
       };
-    })
-    .catch((error) => {
-      console.error('Error during service worker registration:', error);
-    });
+    };
+  } catch (error) {
+    console.error('Error during service worker registration:', error);
+  }
 }
 
-function checkValidServiceWorker(swUrl: string, config?: Config) {
+function checkValidServiceWorker(swUrl: string, config?: ServiceWorkerConfig) {
   // Check if the service worker can be found. If it can't reload the page.
   fetch(swUrl, {
     headers: { 'Service-Worker': 'script' },
@@ -132,15 +81,3 @@ function checkValidServiceWorker(swUrl: string, config?: Config) {
       console.log('No internet connection found. App is running in offline mode.');
     });
 }
-
-// export function unregister() {
-//   if ('serviceWorker' in navigator) {
-//     navigator.serviceWorker.ready
-//       .then((registration) => {
-//         registration.unregister();
-//       })
-//       .catch((error) => {
-//         console.error(error.message);
-//       });
-//   }
-// }
